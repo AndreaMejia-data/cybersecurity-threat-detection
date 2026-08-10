@@ -2,32 +2,75 @@
 
 ## 📌 Project Overview
 
-This project analyses network traffic data to identify malicious Bot activity and explores how data analytics, SQL, rule-based detection and machine learning can be used for cybersecurity threat detection.
+This project analyses network traffic data to identify malicious **Bot activity** and explores how data analytics, SQL, rule-based detection and machine learning can be applied to cybersecurity threat detection.
 
-The project begins with exploratory analysis of network-flow behaviour, develops a rule-based threat detection approach, and then compares this with a machine-learning model.
+The project follows an end-to-end analytical workflow, beginning with data cleaning and exploratory analysis before developing a rule-based threat detector and comparing its performance with a machine-learning model.
 
-A class-weighted Random Forest classifier was ultimately used to detect Bot traffic and achieved **95.65% recall** and approximately **99.47% precision** on the held-out test set.
+A class-weighted **Random Forest classifier** was ultimately used to detect Bot traffic, achieving approximately **99.47% precision** and **95.65% recall** on the held-out test set.
 
 ---
 
 ## 🎯 Project Objectives
 
-The main objectives were to:
+The main objectives of this project were to:
 
 - Analyse network traffic for patterns associated with Bot activity
 - Compare BENIGN and malicious network behaviour
 - Identify destination ports associated with suspicious traffic
 - Develop a rule-based threat detection baseline
 - Build a machine-learning model for Bot detection
-- Evaluate the model using appropriate metrics for imbalanced data
+- Account for severe class imbalance in the dataset
+- Evaluate the model using appropriate cybersecurity classification metrics
 - Investigate which network features influence threat detection
-- Use SQL to perform security-focused network analysis
+- Use SQL to perform security-focused network traffic analysis
+
+---
+
+## 💼 Skills Demonstrated
+
+- Python Data Analysis
+- Data Cleaning & Preprocessing
+- Exploratory Data Analysis (EDA)
+- Cybersecurity Network Traffic Analysis
+- SQL & SQLite
+- Rule-Based Threat Detection
+- Machine Learning Classification
+- Random Forest
+- Imbalanced Classification
+- Train/Test Splitting
+- Precision, Recall & F1 Evaluation
+- ROC-AUC Analysis
+- Precision-Recall Analysis
+- Confusion Matrix Analysis
+- Feature Importance
+- Permutation Importance
+- Model Interpretation
+- Git & GitHub
 
 ---
 
 ## 📊 Dataset Overview
 
-After cleaning, the dataset contained:
+### Dataset Source
+
+This project uses data from the **CICIDS2017 (Canadian Institute for Cybersecurity Intrusion Detection System 2017)** dataset.
+
+The analysis focuses on:
+
+`Friday-WorkingHours-Morning.pcap_ISCX.csv`
+
+which contains BENIGN and Bot network traffic.
+
+**Dataset:** [CIC-IDS2017 Dataset – Kaggle](https://www.kaggle.com/datasets/dhoogla/cicids2017)
+
+The original file contained **191,033 network flows**, including:
+
+- **189,067 BENIGN flows**
+- **1,966 Bot flows**
+
+After cleaning and duplicate removal, the final dataset used for analysis contained **184,145 network flows**.
+
+### Final Dataset
 
 | Metric | Result |
 |---|---:|
@@ -35,50 +78,53 @@ After cleaning, the dataset contained:
 | BENIGN Flows | 182,192 |
 | Bot Flows | 1,953 |
 | Bot Traffic | 1.06% |
-| ML Features | 78 |
+| Machine Learning Features | 78 |
 
-The dataset is highly imbalanced, with Bot traffic representing only approximately **1.06%** of all network flows.
+The final dataset was highly imbalanced, with Bot traffic representing only approximately **1.06% of all network flows**.
 
-Because of this imbalance, model performance was assessed using **precision, recall, F1-score, ROC-AUC and PR-AUC**, rather than relying solely on accuracy.
+Because of this imbalance, model performance was assessed primarily using **precision, recall, F1-score and Precision-Recall AUC**, rather than relying solely on overall accuracy.
 
 ---
 
 ## 🛠️ Technologies Used
 
-- Python
-- Pandas
-- NumPy
-- Matplotlib
-- Scikit-learn
-- SQL
-- SQLite
-- Google Colab
-- Git / GitHub
+- **Python**
+- **Pandas**
+- **NumPy**
+- **Matplotlib**
+- **Scikit-learn**
+- **SQL**
+- **SQLite**
+- **Google Colab**
+- **Git / GitHub**
 
 ---
 
-## 🧹 Data Preparation
+## 🧹 Data Cleaning & Preparation
 
 The data preparation process included:
 
 - Inspecting dataset structure and data types
 - Identifying missing values
-- Removing **6,888 duplicate records**
-- Handling missing `Flow Bytes/s` values
-- Identifying infinite values in network-rate features
-- Replacing invalid infinite values and handling resulting missing values
-- Verifying the final dataset contained no missing values
-- Preparing a binary target variable for machine learning
+- Identifying and removing **6,888 duplicate records**
+- Investigating missing `Flow Bytes/s` values
+- Detecting infinite values in `Flow Bytes/s` and `Flow Packets/s`
+- Converting invalid infinite values and handling resulting missing values
+- Verifying that no missing or infinite values remained
+- Preparing the dataset for SQL analysis and machine learning
+- Creating a binary machine-learning target:
+  - `BENIGN = 0`
+  - `Bot = 1`
 
-The final cleaned dataset contained **184,145 network flows**.
+Following cleaning, the dataset contained **184,145 network flows**.
 
 ---
 
 ## 🔎 Exploratory Data Analysis
 
-Exploratory analysis was used to compare BENIGN and Bot network behaviour.
+Exploratory analysis was performed to identify behavioural differences between BENIGN and Bot network traffic.
 
-Several differences were identified.
+Several substantial differences were identified:
 
 | Network Characteristic | BENIGN | Bot |
 |---|---:|---:|
@@ -89,7 +135,15 @@ Several differences were identified.
 | Average Backward Bytes | 29,758.92 | 64.18 |
 | Average Packet Length | 107.47 | 51.56 |
 
-Bot flows therefore exhibited substantially different packet, traffic-volume and flow-duration characteristics compared with BENIGN traffic.
+Bot flows generally contained:
+
+- Shorter flow durations
+- Fewer forward and backward packets
+- Substantially lower backward traffic volume
+- Smaller average packet sizes
+- Distinct destination-port behaviour
+
+These patterns were subsequently used to investigate potential rule-based threat detection.
 
 ---
 
@@ -97,36 +151,52 @@ Bot flows therefore exhibited substantially different packet, traffic-volume and
 
 Destination port emerged as an important characteristic of Bot traffic.
 
-**1,248 of the 1,953 Bot flows targeted destination port 8080.**
+Of the **1,953 Bot flows** in the cleaned dataset:
+
+**1,248 targeted destination port 8080.**
 
 This represents:
 
 > **63.9% of all Bot traffic in the analysed dataset.**
 
-No BENIGN flows in the analysed dataset targeted port 8080.
+No BENIGN flows in this dataset targeted destination port 8080.
 
-However, destination port alone should not be considered a universal indicator of malicious activity. This pattern may be specific to the network environment represented by this dataset.
+However, this does **not** mean that traffic using port 8080 is inherently malicious. The relationship observed here may be specific to the attack scenario and network environment represented within this dataset.
+
+This distinction became particularly important when interpreting the machine-learning model.
 
 ---
 
-## 🛡️ Rule-Based Threat Detection
+# 🛡️ Rule-Based Threat Detection
 
-A rule-based detector was initially developed using patterns identified during exploratory analysis.
+Before implementing machine learning, a rule-based detector was developed to establish an interpretable baseline.
 
-### Initial Rule
+## Rule V1
 
-The first detector achieved:
+The initial rule produced:
 
-- **Precision:** 100%
-- **Recall:** 26.1%
-- **Bot flows detected:** 510
-- **False positives:** 0
+| Metric | Result |
+|---|---:|
+| True Positives | 510 |
+| False Positives | 0 |
+| False Negatives | 1,443 |
+| True Negatives | 182,192 |
+| Precision | 100% |
+| Recall | 26.1% |
 
-Although highly precise, the detector missed a large proportion of malicious traffic.
+The rule was extremely precise but detected only approximately one quarter of Bot traffic.
 
-### Improved Rule
+This demonstrated an important cybersecurity trade-off:
 
-A second rule incorporated:
+> A detection rule can generate very few false alerts while still missing a large proportion of malicious activity.
+
+---
+
+## Rule V2
+
+Further analysis of the missed Bot traffic identified additional characteristics that could improve detection.
+
+The second rule considered:
 
 - Destination port 8080
 - Low forward packet counts
@@ -144,25 +214,45 @@ The improved detector achieved:
 | Precision | 100% |
 | Recall | 60.22% |
 
-The improved rule substantially increased threat coverage while maintaining zero false positives within this dataset.
+The second rule increased recall from **26.1% to 60.22%** while maintaining zero false positives within this dataset.
+
+Rule V2 was therefore retained as the **rule-based baseline** for comparison with machine learning.
 
 ---
 
-## 🤖 Machine Learning Threat Detection
+# 🤖 Machine Learning Threat Detection
 
-A **Random Forest classifier** was trained to determine whether machine learning could improve upon the rule-based approach.
+A **Random Forest classifier** was trained to determine whether machine learning could improve threat detection beyond the manually defined rules.
 
-The data was divided using an **80/20 stratified train-test split**, preserving the class distribution between the training and testing datasets.
+The data was divided using an:
 
-Because Bot traffic represented only around 1% of the dataset, the Random Forest used:
+**80% training / 20% testing stratified split**
 
-`class_weight="balanced"`
+to preserve the proportion of BENIGN and Bot traffic in both datasets.
 
-to account for class imbalance.
+### Training Set
+
+- 147,316 network flows
+- 145,754 BENIGN
+- 1,562 Bot
+
+### Test Set
+
+- 36,829 network flows
+- 36,438 BENIGN
+- 391 Bot
+
+Because Bot traffic represented only around 1% of the dataset, the Random Forest was configured using:
+
+```python
+class_weight="balanced"
+```
+
+This helped account for the severe class imbalance during model training.
 
 ---
 
-## 📈 Model Performance
+## 📈 Machine Learning Results
 
 The Random Forest produced the following confusion matrix on the held-out test set:
 
@@ -175,129 +265,214 @@ The Random Forest produced the following confusion matrix on the held-out test s
 
 | Metric | Result |
 |---|---:|
+| True Positives | 374 |
+| True Negatives | 36,436 |
+| False Positives | 2 |
+| False Negatives | 17 |
 | Precision | ~99.47% |
 | Recall | ~95.65% |
 | F1-score | ~97.5% |
-| False Positives | 2 |
-| False Negatives | 17 |
 | ROC-AUC | 1.0000 |
 | PR-AUC | 0.9979 |
 
-The machine-learning model substantially increased Bot detection compared with the rule-based baseline.
+The model correctly detected **374 of the 391 Bot flows** in the held-out test set while incorrectly flagging only **2 BENIGN flows**.
 
-### Rule-Based vs Machine Learning
+---
+
+## 📊 Rule-Based vs Machine Learning Detection
 
 | Approach | Precision | Recall |
 |---|---:|---:|
-| Rule-Based Detector V2 | 100% | 60.22% |
+| Rule V1 | 100% | 26.1% |
+| Rule V2 | 100% | 60.22% |
 | Random Forest | ~99.47% | ~95.65% |
 
-The Random Forest increased recall by approximately **35 percentage points** while producing only two false-positive classifications on the test set.
+The Random Forest increased Bot recall by approximately **35 percentage points compared with Rule V2**, while maintaining very high precision.
+
+This demonstrates the benefit of using machine learning to identify more complex combinations of network-flow characteristics that cannot easily be represented by a small number of manual rules.
 
 ---
 
-## 🧠 Model Interpretation
+# 🧠 Model Interpretation
 
-Feature importance was analysed to understand which network characteristics contributed to Random Forest predictions.
+Achieving strong predictive performance was not considered sufficient on its own. Feature importance analysis was therefore performed to investigate **which network characteristics the Random Forest relied upon**.
 
-Important features included:
+## Random Forest Feature Importance
 
-- Destination Port
-- Bwd Packet Length Mean
-- Init_Win_bytes_forward
-- Avg Bwd Segment Size
-- Init_Win_bytes_backward
-- Average Packet Size
-- Total Length of Bwd Packets
-- Bwd Packet Length Max
-- Subflow Bwd Bytes
-- Packet Length Mean
-
-Permutation importance was also used as an additional model-interpretation technique.
-
-The strongest permutation features included:
+The most important features included:
 
 1. Destination Port
-2. Init_Win_bytes_forward
-3. Init_Win_bytes_backward
-4. URG Flag Count
-5. Flow Duration
-6. Flow IAT Mean
-7. Flow IAT Max
-8. Flow IAT Std
-9. Bwd Packets/s
-10. Bwd Packet Length Mean
+2. Bwd Packet Length Mean
+3. Init_Win_bytes_forward
+4. Avg Bwd Segment Size
+5. Init_Win_bytes_backward
+6. Average Packet Size
+7. Total Length of Bwd Packets
+8. Bwd Packet Length Max
+9. Subflow Bwd Bytes
+10. Packet Length Mean
 
-Destination Port was particularly influential, suggesting the model relies heavily on port-related patterns within this dataset.
+Several important features related to **backward network traffic**, supporting patterns identified during exploratory analysis.
 
 ---
 
-## 🗄️ SQL Security Analysis
+## Permutation Importance
 
-SQLite was used to perform additional cybersecurity analysis on the cleaned network traffic.
+Permutation importance was also calculated to assess how strongly the model's predictive performance depended on individual features.
 
-The SQL section demonstrates:
+The leading features were:
+
+| Rank | Feature | Permutation Importance |
+|---|---|---:|
+| 1 | Destination Port | 0.713735 |
+| 2 | Init_Win_bytes_forward | 0.202637 |
+| 3 | Init_Win_bytes_backward | 0.175822 |
+| 4 | URG Flag Count | 0.064274 |
+| 5 | Flow Duration | 0.022596 |
+| 6 | Flow IAT Mean | 0.015590 |
+| 7 | Flow IAT Max | 0.010313 |
+| 8 | Flow IAT Std | 0.008988 |
+| 9 | Bwd Packets/s | 0.007334 |
+| 10 | Bwd Packet Length Mean | 0.005708 |
+
+`Destination Port` was particularly influential.
+
+Shuffling this feature caused a substantial deterioration in model performance, suggesting that the classifier relies heavily on destination-port patterns within this dataset.
+
+This is an important consideration when evaluating whether the model would generalise to other network environments.
+
+---
+
+# 🗄️ SQL Security Analysis
+
+The cleaned network traffic was loaded into **SQLite** to perform additional cybersecurity analysis using SQL.
+
+The SQL section investigated:
+
+- Overall network traffic volume
+- BENIGN vs Bot traffic distribution
+- Bot activity by destination port
+- Average network behaviour by traffic class
+- Percentage of Bot traffic targeting port 8080
+- Rule-based suspicious-flow detection
+- Ranking destination ports by malicious activity
+
+SQL techniques demonstrated include:
 
 - `SELECT`
 - `WHERE`
-- `GROUP BY`
 - `COUNT()`
 - `AVG()`
 - `ROUND()`
+- `GROUP BY`
+- `ORDER BY`
+- `LIMIT`
 - `CASE`
 - Subqueries
 - Common Table Expressions (CTEs)
 - Window functions
 - `RANK()`
 
-SQL was used to investigate Bot activity by destination port, compare BENIGN and Bot network characteristics, identify suspicious flows and rank destination ports by malicious activity.
+The SQL implementation of Rule V2 identified:
 
-The SQL implementation of the improved detection rule identified **1,176 suspicious Bot flows with no BENIGN flows flagged** within the analysed dataset.
+> **1,176 suspicious Bot flows and zero BENIGN flows**
 
----
+which reproduced the results obtained using Python.
 
-## ⚠️ Limitations
-
-Although the Random Forest achieved very strong test performance, these results should be interpreted carefully.
-
-Destination Port was particularly influential, and **63.9% of Bot traffic targeted port 8080**. The model may therefore be learning characteristics that are specific to this dataset and network environment.
-
-Additionally, the train-test split was created randomly from the same underlying dataset. Network flows within the dataset may share characteristics that make the held-out test set easier to classify than traffic collected from an entirely different network.
-
-Therefore, the reported performance should **not** be interpreted as evidence that the model would achieve the same results on real-world unseen network traffic.
-
-Future work could include:
-
-- Testing against an independent network dataset
-- Time-based validation
-- Detection of additional attack categories
-- Cross-environment testing
-- Model threshold optimisation
-- Further explainability analysis
+SQL analysis also ranked **destination port 8080 as the leading port by Bot-flow volume**, containing 1,248 Bot flows.
 
 ---
 
-## 💡 Key Takeaways
+# ⚠️ Model Limitations
 
-This project demonstrates how traditional data analytics and machine learning can complement each other in cybersecurity.
+Although the Random Forest achieved extremely strong test performance, the results should be interpreted carefully.
 
-Exploratory analysis identified distinctive Bot traffic characteristics, while SQL provided an additional method of investigating suspicious network behaviour.
+### 1. Dataset-Specific Port Behaviour
 
-The rule-based detector provided a highly precise baseline, but machine learning substantially improved threat coverage.
+Destination Port was the strongest predictor, and **63.9% of Bot traffic targeted port 8080**.
 
-Most importantly, model interpretation showed that the classifier relied heavily on destination-port and TCP/network-flow characteristics, highlighting the importance of evaluating both **model performance and model behaviour**.
+The model may therefore rely heavily on a pattern associated with this particular attack scenario rather than learning a universally applicable representation of Bot traffic.
+
+### 2. Random Train/Test Split
+
+Training and testing samples were randomly selected from the same underlying dataset and network environment.
+
+Flows may therefore share characteristics across the training and testing sets.
+
+Performance on traffic collected from an entirely different network could be lower.
+
+### 3. Limited Attack Scope
+
+This analysis focuses specifically on distinguishing **BENIGN traffic from Bot activity**.
+
+A production intrusion-detection system would need to recognise multiple attack categories and previously unseen threats.
+
+### 4. Very High Evaluation Scores
+
+The **1.0000 ROC-AUC** and **0.9979 PR-AUC** indicate excellent separation within the test data, but these values should not be interpreted as evidence of a universally perfect threat detector.
+
+Independent validation would be required before making claims about real-world performance.
 
 ---
 
-## 📁 Repository
+# 🚀 Future Improvements
 
-The complete analysis, SQL queries, visualisations, model development and evaluation can be found in:
+Future development could include:
 
-`Cybersecurity_Threat_Detection_Analysis.ipynb`
+- Testing the model on an independent network dataset
+- Using time-based rather than random validation
+- Evaluating additional cyberattack categories
+- Cross-environment model testing
+- Investigating model performance without Destination Port
+- Threshold optimisation based on operational security requirements
+- Additional explainability techniques
+- Evaluating performance under changing network conditions
 
 ---
 
-## 👩‍💻 Author
+# 💡 Key Takeaways
+
+This project demonstrates how **data analytics, SQL, cybersecurity knowledge and machine learning** can be combined to investigate malicious network behaviour.
+
+Key findings include:
+
+- Bot traffic represented only **1.06%** of the cleaned dataset.
+- **63.9% of Bot flows targeted port 8080**.
+- Rule-based detection achieved **60.22% recall with 100% precision**.
+- Random Forest increased Bot recall to approximately **95.65%**.
+- The model maintained approximately **99.47% precision**.
+- Only **2 BENIGN flows** were incorrectly classified as Bot in the test set.
+- Permutation importance revealed a strong dependency on Destination Port.
+- SQL independently reproduced the rule-based threat detection results.
+- Model limitations were considered alongside predictive performance.
+
+The project highlights an important principle in cybersecurity analytics:
+
+> **Strong model performance should be evaluated alongside false positives, false negatives, class imbalance, explainability and generalisability.**
+
+---
+
+# 📁 Repository Contents
+
+### `Cybersecurity_Threat_Detection_Analysis.ipynb`
+
+Complete project notebook containing:
+
+- Data preparation
+- Exploratory data analysis
+- Network traffic investigation
+- Rule-based detection
+- Random Forest modelling
+- Model evaluation
+- Feature importance
+- Permutation importance
+- SQL analysis
+- Visualisations
+- Project conclusions
+
+---
+
+# 👩‍💻 Author
 
 **Andrea Mejia**
 
