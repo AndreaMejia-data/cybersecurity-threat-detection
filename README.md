@@ -124,6 +124,22 @@ Following cleaning, the dataset contained **184,145 network flows**.
 
 Exploratory analysis was performed to identify behavioural differences between BENIGN and Bot network traffic.
 
+## 🔎 Exploratory Data Analysis
+
+Exploratory analysis was performed to identify behavioural differences between BENIGN and Bot network traffic.
+
+### BENIGN vs Bot Traffic Distribution
+
+![BENIGN vs Bot Traffic Distribution](BENIGN%20vs%20Bot%20distribution.png)
+
+The class distribution demonstrates the significant imbalance within the dataset, with Bot traffic representing only **1.06% of network flows**. This imbalance influenced the choice of evaluation metrics and the use of class weighting during machine-learning development.
+
+Several substantial differences were identified:
+
+| Network Characteristic | BENIGN | Bot |
+|---|---:|---:|
+...
+
 Several substantial differences were identified:
 
 | Network Characteristic | BENIGN | Bot |
@@ -261,6 +277,12 @@ The Random Forest produced the following confusion matrix on the held-out test s
 | **Actual BENIGN** | 36,436 | 2 |
 | **Actual Bot** | 17 | 374 |
 
+### Random Forest Confusion Matrix
+
+![Random Forest Confusion Matrix](Confusion%20matrix.png)
+
+The Random Forest correctly identified **374 of 391 Bot flows** in the test set, while only **2 BENIGN flows were incorrectly classified as Bot**.
+
 ### Bot Detection Performance
 
 | Metric | Result |
@@ -298,6 +320,8 @@ This demonstrates the benefit of using machine learning to identify more complex
 Achieving strong predictive performance was not considered sufficient on its own. Feature importance analysis was therefore performed to investigate **which network characteristics the Random Forest relied upon**.
 
 ## Random Forest Feature Importance
+
+![Random Forest Feature Importance](Feature%20importance.png)
 
 The most important features included:
 
