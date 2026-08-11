@@ -128,17 +128,15 @@ Exploratory analysis was performed to identify behavioural differences between B
 
 Exploratory analysis was performed to identify behavioural differences between BENIGN and Bot network traffic.
 
+## 🔎 Exploratory Data Analysis
+
+Exploratory analysis was performed to identify behavioural differences between BENIGN and Bot network traffic.
+
 ### BENIGN vs Bot Traffic Distribution
 
 ![BENIGN vs Bot Traffic Distribution](BENIGN%20vs%20Bot%20distribution.png)
 
 The class distribution demonstrates the significant imbalance within the dataset, with Bot traffic representing only **1.06% of network flows**. This imbalance influenced the choice of evaluation metrics and the use of class weighting during machine-learning development.
-
-Several substantial differences were identified:
-
-| Network Characteristic | BENIGN | Bot |
-|---|---:|---:|
-...
 
 Several substantial differences were identified:
 
@@ -160,7 +158,6 @@ Bot flows generally contained:
 - Distinct destination-port behaviour
 
 These patterns were subsequently used to investigate potential rule-based threat detection.
-
 ---
 
 ## 🚨 Destination Port Analysis
